@@ -887,6 +887,16 @@ dev = [
     { name = "watchfiles" },
 ]
 
+[package.dev-dependencies]
+dev = [
+    { name = "jupyterlab" },
+    { name = "pytest", version = "8.4.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.10'" },
+    { name = "pytest", version = "9.0.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.10'" },
+    { name = "pytest-cov" },
+    { name = "ruff" },
+    { name = "watchfiles" },
+]
+
 [package.metadata]
 requires-dist = [
     { name = "anywidget" },
@@ -897,6 +907,15 @@ requires-dist = [
     { name = "watchfiles", marker = "extra == 'dev'" },
 ]
 provides-extras = ["dev"]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "jupyterlab" },
+    { name = "pytest", specifier = ">=7.0" },
+    { name = "pytest-cov" },
+    { name = "ruff", specifier = ">=0.6.0" },
+    { name = "watchfiles" },
+]
 
 [[package]]
 name = "ipykernel"

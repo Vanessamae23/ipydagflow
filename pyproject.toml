@@ -18,6 +18,15 @@ dev = [
     "pytest-cov",
 ]
 
+[tool.uv]
+dev-dependencies = [
+    "pytest>=7.0",
+    "pytest-cov",
+    "ruff>=0.6.0",
+    "watchfiles",
+    "jupyterlab",
+]
+
 [tool.hatch.envs.default]
 features = ["dev"]
 

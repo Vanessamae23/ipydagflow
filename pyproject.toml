@@ -36,8 +36,8 @@ artifacts = ["src/ipydagflow/static/*"]
 
 [tool.hatch.build.hooks.jupyter-builder]
 build-function = "hatch_jupyter_builder.npm_builder"
-ensured-targets = ["src/ipydagflow/static/widget.js"]
-skip-if-exists = ["src/ipydagflow/static/widget.js"]
+ensured-targets = ["src/ipydagflow/static/dynamic_dag.js"]
+skip-if-exists = ["src/ipydagflow/static/dynamic_dag.js"]
 dependencies = ["hatch-jupyter-builder>=0.5.0"]
 
 [tool.hatch.build.hooks.jupyter-builder.build-kwargs]

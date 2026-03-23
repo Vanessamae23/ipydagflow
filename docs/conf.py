@@ -11,7 +11,7 @@ author = "ipydagflow contributors"
 # -- General configuration ---------------------------------------------------
 
 extensions = [
-    "myst_parser",
+    "myst_nb",
     "sphinx.ext.autodoc",
     "sphinx.ext.napoleon",
     "sphinx.ext.viewcode",
@@ -30,6 +30,11 @@ myst_enable_extensions = [
     "fieldlist",
     "tasklist",
 ]
+
+# -- Notebook configuration --------------------------------------------------
+
+nb_execution_mode = "auto"  # "off", "auto", or "force"
+nb_execution_timeout = 120
 
 # -- Options for HTML output -------------------------------------------------
 

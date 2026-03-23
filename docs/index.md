@@ -7,6 +7,7 @@ Interactive DAG visualization for Jupyter notebooks.
 :caption: Contents
 
 getting-started
+example_dynamic_styles
 api
 ```
 

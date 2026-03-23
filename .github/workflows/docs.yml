@@ -33,7 +33,9 @@ jobs:
         run: uv sync --extra docs
 
       - name: Build docs
-        run: uv run sphinx-build -b html docs docs/_build/html
+        run: |
+          uv run sphinx-build -b html docs docs/_build/html
+          touch docs/_build/html/.nojekyll
 
       - name: Upload artifact
         if: github.ref == 'refs/heads/master'

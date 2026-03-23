@@ -5,7 +5,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 project = "ipydagflow"
-copyright = "2024, ipydagflow contributors"
+copyright = "2026, ipydagflow contributors"
 author = "ipydagflow contributors"
 
 # -- General configuration ---------------------------------------------------

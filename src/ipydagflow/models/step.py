@@ -31,13 +31,15 @@ class Step:
     children: List["Step"] = field(default_factory=list, repr=False)
     parents: List["Step"] = field(default_factory=list, repr=False)
     subflow: Optional["Subflow"] = field(default=None, repr=False)
+    _edge_labels: Dict[str, str] = field(default_factory=dict, repr=False)
 
-    def add_child(self, child: "Step") -> "Step":
+    def add_child(self, child: "Step", edge_label: Optional[str] = None) -> "Step":
         """
         Add a child step.
 
         Args:
             child: The child step to add
+            edge_label: Optional label for the edge connecting to this child
 
         Returns:
             The child step (for chaining)
@@ -46,19 +48,27 @@ class Step:
             self.children.append(child)
         if self not in child.parents:
             child.parents.append(self)
+        if edge_label:
+            self._edge_labels[child.id] = edge_label
         return child
 
-    def add_children(self, *children: "Step") -> List["Step"]:
+    def add_children(self, *children: "Step", edge_labels: Optional[List[str]] = None) -> List["Step"]:
         """
         Add multiple child steps.
 
         Args:
             *children: Variable number of child steps
+            edge_labels: Optional list of labels for each edge (same order as children)
 
         Returns:
             List of child steps
         """
-        return [self.add_child(child) for child in children]
+        labels = edge_labels or [None] * len(children)
+        return [self.add_child(child, label) for child, label in zip(children, labels)]
+
+    def get_edge_label(self, child_id: str) -> Optional[str]:
+        """Get the edge label for a specific child."""
+        return self._edge_labels.get(child_id)
 
     def add_parent(self, parent: "Step") -> "Step":
         """
@@ -168,6 +178,7 @@ class Subflow:
     height: int = 150
     children: list[Union["Subflow", Step]] = field(default_factory=list, repr=False)
     parents: list[Union["Subflow", Step]] = field(default_factory=list, repr=False)
+    _edge_labels: dict[str, str] = field(default_factory=dict, repr=False)
 
     def add_step(self, step: Step) -> Step:
         """
@@ -212,12 +223,15 @@ class Subflow:
             return True
         return False
 
-    def add_child(self, child: Union["Subflow", Step]) -> Union["Subflow", Step]:
+    def add_child(
+        self, child: Union["Subflow", Step], edge_label: Optional[str] = None
+    ) -> Union["Subflow", Step]:
         """
         Add a child subflow or step (creates a DAG edge).
 
         Args:
             child: The child subflow or step to connect
+            edge_label: Optional label for the edge
 
         Returns:
             The child (for chaining)
@@ -226,7 +240,13 @@ class Subflow:
             self.children.append(child)
         if self not in child.parents:
             child.parents.append(self)
+        if edge_label:
+            self._edge_labels[child.id] = edge_label
         return child
+
+    def get_edge_label(self, child_id: str) -> Optional[str]:
+        """Get the edge label for a specific child."""
+        return self._edge_labels.get(child_id)
 
     def add_parent(self, parent: Union["Subflow", Step]) -> Union["Subflow", Step]:
         """

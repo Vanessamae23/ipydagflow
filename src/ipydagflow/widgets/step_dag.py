@@ -270,22 +270,32 @@ class StepDAG:
         for step in all_steps:
             for child in step.children:
                 child_id = child.id if isinstance(child, Step) else child.id
-                edges.append({
+                edge = {
                     "id": f"e{edge_id}",
                     "source": step.id,
                     "target": child_id
-                })
+                }
+                # Add label if present
+                edge_label = step.get_edge_label(child_id)
+                if edge_label:
+                    edge["label"] = edge_label
+                edges.append(edge)
                 edge_id += 1
 
         # Edges from subflows
         for subflow in self._subflows.values():
             for child in subflow.children:
                 child_id = child.id
-                edges.append({
+                edge = {
                     "id": f"e{edge_id}",
                     "source": subflow.id,
                     "target": child_id
-                })
+                }
+                # Add label if present
+                edge_label = subflow.get_edge_label(child_id)
+                if edge_label:
+                    edge["label"] = edge_label
+                edges.append(edge)
                 edge_id += 1
 
         return nodes, edges

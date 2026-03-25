@@ -232,7 +232,16 @@ const FlowComponent: React.FC = () => {
   // Update edges when inputEdges changes
   React.useEffect(() => {
     if (inputEdges && Array.isArray(inputEdges)) {
-      setEdges(inputEdges);
+      // Add default edge styling
+      const styledEdges = inputEdges.map(edge => ({
+        ...edge,
+        style: { strokeWidth: 2 },
+        labelStyle: { fill: '#666', fontWeight: 500, fontSize: 12 },
+        labelBgStyle: { fill: 'white', fillOpacity: 0.8 },
+        labelBgPadding: [4, 2] as [number, number],
+        labelBgBorderRadius: 4,
+      }));
+      setEdges(styledEdges);
     }
   }, [inputEdges, setEdges]);
 

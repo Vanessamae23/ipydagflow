@@ -1,5 +1,5 @@
 """Data models for ipydagflow."""
 
-from .step import Step
+from .step import Step, Subflow
 
-__all__ = ["Step"]
+__all__ = ["Step", "Subflow"]

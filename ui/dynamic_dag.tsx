@@ -91,35 +91,106 @@ const createBoxNode = (styles: NodeStyle) => {
   return BoxNode;
 };
 
+// Group Node (subflow container)
+const GroupNode: React.FC<NodeProps<NodeData>> = ({ data, selected, width, height }) => {
+  return (
+    <div
+      style={{
+        padding: '10px',
+        borderRadius: '8px',
+        background: 'rgba(240, 240, 240, 0.8)',
+        width: width || 200,
+        height: height || 150,
+        boxSizing: 'border-box',
+      }}
+    >
+      <Handle type="target" position={Position.Top} />
+      <div style={{ fontWeight: 'bold', color: '#666', fontSize: '12px', marginBottom: '5px' }}>
+        {data.label}
+      </div>
+      <Handle type="source" position={Position.Bottom} />
+    </div>
+  );
+};
+
 
 // Auto-layout function using dagre
 const getLayoutedElements = (nodes: Node[], edges: Edge[]): Node[] => {
+
+  // Separate parent (group/subflow) nodes from child nodes
+  const parentNodes = nodes.filter(n => n.type === 'group' || n.type === 'subflow');
+  const childNodes = nodes.filter(n => n.parentId);
+  const topLevelNodes = nodes.filter(n => n.type !== 'group' && !n.parentId);
+
   const dagreGraph = new dagre.graphlib.Graph();
   dagreGraph.setDefaultEdgeLabel(() => ({}));
   dagreGraph.setGraph({ rankdir: "TB", ranksep: 120, nodesep: 80 });
 
-  nodes.forEach((node) => {
+  // Add parent nodes and top-level nodes to dagre
+  parentNodes.forEach((node) => {
+    const width = (node.style?.width as number) || 200;
+    const height = (node.style?.height as number) || 150;
+    console.log(`Adding group node ${node.id} with size ${width}x${height}`);
+    dagreGraph.setNode(node.id, { width, height });
+  });
+
+  topLevelNodes.forEach((node) => {
     dagreGraph.setNode(node.id, { width: 150, height: 80 });
   });
 
+  // Only add edges between top-level nodes (groups and standalone)
   edges.forEach((edge) => {
-    dagreGraph.setEdge(edge.source, edge.target);
+    const sourceIsTopLevel = parentNodes.find(n => n.id === edge.source) || topLevelNodes.find(n => n.id === edge.source);
+    const targetIsTopLevel = parentNodes.find(n => n.id === edge.target) || topLevelNodes.find(n => n.id === edge.target);
+    console.log(`Edge ${edge.source} -> ${edge.target}: sourceTopLevel=${!!sourceIsTopLevel}, targetTopLevel=${!!targetIsTopLevel}`);
+    if (sourceIsTopLevel && targetIsTopLevel) {
+      dagreGraph.setEdge(edge.source, edge.target);
+    }
   });
 
   dagre.layout(dagreGraph);
 
-  const layoutedNodes = nodes.map((node) => {
-    const nodeWithPosition = dagreGraph.node(node.id);
-    return {
-      ...node,
-      position: {
-        x: nodeWithPosition.x - 75,
-        y: nodeWithPosition.y - 40,
-      },
-    };
+  // Position child nodes within their parents
+  const childPositions: Record<string, { x: number; y: number }> = {};
+  parentNodes.forEach(parent => {
+    const children = childNodes.filter(n => n.parentId === parent.id);
+    let yOffset = 40; // Start below the label
+    children.forEach((child, index) => {
+      childPositions[child.id] = { x: 20, y: yOffset };
+      yOffset += 70;
+    });
   });
 
-  return layoutedNodes;
+  // Build result: parents first, then children
+  const result: Node[] = [];
+
+  parentNodes.forEach((node) => {
+    const pos = dagreGraph.node(node.id);
+    const width = (node.style?.width as number) || 200;
+    const height = (node.style?.height as number) || 150;
+    console.log(`Group ${node.id} dagre pos:`, pos, `final: x=${pos.x - width/2}, y=${pos.y - height/2}`);
+    result.push({
+      ...node,
+      position: { x: pos.x - width / 2, y: pos.y - height / 2 },
+    });
+  });
+
+  topLevelNodes.forEach((node) => {
+    const pos = dagreGraph.node(node.id);
+    result.push({
+      ...node,
+      position: { x: pos.x - 75, y: pos.y - 40 },
+    });
+  });
+
+  childNodes.forEach((node) => {
+    result.push({
+      ...node,
+      position: childPositions[node.id] || { x: 20, y: 40 },
+    });
+  });
+
+  return result;
 };
 
 const FlowComponent: React.FC = () => {
@@ -133,10 +204,12 @@ const FlowComponent: React.FC = () => {
 
   // Create node types with dynamic styles
   const nodeTypes = React.useMemo(() => {
-    if (!stylesConfig) return {};
+    if (!stylesConfig) return { group: GroupNode, subflow: GroupNode };
     return {
       datasource: createDataSourceNode(stylesConfig.datasource),
       box: createBoxNode(stylesConfig.box),
+      group: GroupNode,
+      subflow: GroupNode,
     };
   }, [stylesConfig]);
 
